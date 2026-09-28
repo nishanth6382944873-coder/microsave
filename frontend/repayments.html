@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroSave – Loan Repayments</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-wrapper">
+                <div class="brand-logo-icon">MS</div>
+                <div class="brand-info">
+                    <h1>MicroSave</h1>
+                    <span>Self-Help Group Savings Tracker</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="members.html">👥 Members</a>
+                <a href="contributions.html">💰 Savings / Contributions</a>
+                <a href="loans.html">📑 Internal Loans</a>
+                <a href="repayments.html" class="active">🔄 Repayments</a>
+                <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger-link">⚡ Swagger API</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Internal Loan Repayments</h2>
+                <p class="page-subtitle">Record installment repayments, reduce outstanding member debt, and auto-close completed loans</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="reloadRepaymentsPage()">🔄 Refresh</button>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="alert-box" class="alert-container"></div>
+
+        <!-- Record Repayment Form Card -->
+        <div class="card">
+            <h3 class="card-title">🔄 Record Loan Repayment</h3>
+            <form id="repayment-form" onsubmit="handleRepaymentSubmit(event)">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label class="form-label" for="rep-loan">Select Active Loan *</label>
+                        <select id="rep-loan" class="form-control" required onchange="onLoanSelectChange(this.value)">
+                            <option value="">Loading active loans...</option>
+                        </select>
+                        <div id="loan-details-badge" class="form-hint" style="color: var(--text-secondary); margin-top: 0.5rem; display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="rep-amount">Repayment Amount (₹) *</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" id="rep-amount" class="form-control" placeholder="e.g. 1000" min="1" step="any" required oninput="validateRepaymentAmount(this.value)">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-pay-full" style="white-space: nowrap; display: none;" onclick="payFullOutstanding()">Pay Full</button>
+                        </div>
+                        <div id="repay-warning" class="form-hint" style="color: var(--danger); font-weight: 600; display: none;"></div>
+                        <div id="repay-preview" class="form-hint" style="color: var(--primary); font-weight: 600; display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="rep-date">Repayment Date *</label>
+                        <input type="date" id="rep-date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="rep-description">Description / Notes</label>
+                        <input type="text" id="rep-description" class="form-control" placeholder="e.g. Installment 2 repayment, cash deposit">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="btn-submit-repayment" class="btn btn-primary">🔄 Record Repayment</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Repayments History Table Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>📜 Repayment Transactions History <span class="badge badge-group" id="repay-total-badge" style="margin-left: 0.5rem;">Total Repaid: ₹0</span></span>
+                <input type="text" id="repay-search" class="form-control" style="max-width: 320px; font-size: 0.85rem;" placeholder="🔍 Filter by member or loan ID..." oninput="filterRepaymentsTable(this.value)">
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Loan ID</th>
+                            <th>Member</th>
+                            <th>Original Amount</th>
+                            <th>Outstanding Remaining</th>
+                            <th>Repayment Paid</th>
+                            <th>Date</th>
+                            <th>Loan Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="repayments-table-body">
+                        <tr>
+                            <td colspan="8" class="table-empty">Loading repayment records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <p><strong>MicroSave – Self-Help Group Savings Tracker</strong> | Semester Examination Project</p>
+    </footer>
+
+    <script src="js/repayments.js"></script>
+</body>
+</html>

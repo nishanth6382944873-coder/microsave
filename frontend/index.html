@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroSave – Self-Help Group Savings Tracker | Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- App Header & Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-wrapper">
+                <div class="brand-logo-icon">MS</div>
+                <div class="brand-info">
+                    <h1>MicroSave</h1>
+                    <span>Self-Help Group Savings Tracker</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="index.html" class="active">📊 Dashboard</a>
+                <a href="members.html">👥 Members</a>
+                <a href="contributions.html">💰 Savings / Contributions</a>
+                <a href="loans.html">📑 Internal Loans</a>
+                <a href="repayments.html">🔄 Repayments</a>
+                <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger-link">⚡ Swagger API</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+
+        <!-- Page Header with Group Selector -->
+        <div class="page-header">
+            <div>
+                <h2 class="page-title" id="display-group-title">SHG Financial Dashboard</h2>
+                <p class="page-subtitle">Real-time overview of member savings, internal credit, and pooled capital</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <label for="group-selector" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Select Group:</label>
+                <select id="group-selector" class="form-control" style="width: auto; min-width: 220px;" onchange="loadDashboardData(this.value)">
+                    <option value="1">Women Empowerment SHG</option>
+                </select>
+                <button class="btn btn-secondary btn-sm" onclick="reloadDashboard()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Alert / Notification Banner -->
+        <div id="alert-box" class="alert-container"></div>
+
+        <!-- 5 Key Metric Cards -->
+        <section class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Members</div>
+                <div class="metric-value" id="val-total-members">-</div>
+                <div class="metric-subtext">Active women participants</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Total Savings Deposited</div>
+                <div class="metric-value" id="val-total-savings">₹0</div>
+                <div class="metric-subtext">Cumulative member contributions</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Total Loans Disbursed</div>
+                <div class="metric-value" id="val-total-loans">₹0</div>
+                <div class="metric-subtext">Credit extended to members</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Outstanding Loans</div>
+                <div class="metric-value" id="val-outstanding-loans">₹0</div>
+                <div class="metric-subtext">Pending loan balance</div>
+            </div>
+
+            <div class="metric-card pool-card">
+                <div class="metric-label">Available Group Pool</div>
+                <div class="metric-value" id="val-available-pool">₹0</div>
+                <div class="metric-subtext">Contributions minus Outstanding Loans</div>
+            </div>
+        </section>
+
+        <!-- Quick Summary & SHG Explanatory Information -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            <!-- Business Rules Panel -->
+            <div class="card">
+                <h3 class="card-title">📌 SHG Core Business Principles</h3>
+                <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.75rem;">
+                    <li><strong>Pooled Capital:</strong> All members make periodic savings. The pooled savings form the group lending fund.</li>
+                    <li><strong>Internal Lending:</strong> Loans are given exclusively from the available pooled balance.</li>
+                    <li><strong>Available Pool Rule:</strong> <code>Available Pool = Total Contributions - Total Outstanding Loans</code></li>
+                    <li><strong>Single Active Loan Rule:</strong> A member with an active unpaid loan cannot take another loan.</li>
+                    <li><strong>Auto-Closure:</strong> When full loan repayment is recorded, status is automatically updated to <code>CLOSED</code>.</li>
+                </ul>
+            </div>
+
+            <!-- Quick Action Links -->
+            <div class="card">
+                <h3 class="card-title">⚡ Quick Management Actions</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <a href="members.html" class="btn btn-secondary" style="justify-content: flex-start; text-align: left;">
+                        👥 <span><strong>Register New Member:</strong> Add a woman member to the SHG</span>
+                    </a>
+                    <a href="contributions.html" class="btn btn-secondary" style="justify-content: flex-start; text-align: left;">
+                        💰 <span><strong>Record Savings:</strong> Log weekly deposit for a member</span>
+                    </a>
+                    <a href="loans.html" class="btn btn-secondary" style="justify-content: flex-start; text-align: left;">
+                        📑 <span><strong>Disburse Internal Loan:</strong> Grant loan against available pool</span>
+                    </a>
+                    <a href="repayments.html" class="btn btn-secondary" style="justify-content: flex-start; text-align: left;">
+                        🔄 <span><strong>Record Repayment:</strong> Reduce outstanding loan balance</span>
+                    </a>
+        <!-- Recent Financial Activity Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            <!-- Recent Savings Deposits -->
+            <div class="card">
+                <div class="card-title">
+                    <span>💰 Recent Savings Deposits</span>
+                    <a href="contributions.html" class="btn btn-secondary btn-sm">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-contrib-body">
+                            <tr><td colspan="3" class="table-empty">Loading recent deposits...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Loans -->
+            <div class="card">
+                <div class="card-title">
+                    <span>📑 Recent Member Loans</span>
+                    <a href="loans.html" class="btn btn-secondary btn-sm">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Borrower</th>
+                                <th>Outstanding</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-loans-body">
+                            <tr><td colspan="3" class="table-empty">Loading recent loans...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <p><strong>MicroSave – Self-Help Group Savings Tracker</strong> | Semester Examination Project</p>
+        <p style="font-size: 0.78rem; margin-top: 0.25rem;">Backend: Spring Boot 3 &amp; MySQL | Frontend: Vanilla JS &amp; Fetch API | Port: 8080</p>
+    </footer>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

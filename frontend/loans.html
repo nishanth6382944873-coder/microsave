@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroSave – Internal Member Loans</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-wrapper">
+                <div class="brand-logo-icon">MS</div>
+                <div class="brand-info">
+                    <h1>MicroSave</h1>
+                    <span>Self-Help Group Savings Tracker</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="members.html">👥 Members</a>
+                <a href="contributions.html">💰 Savings / Contributions</a>
+                <a href="loans.html" class="active">📑 Internal Loans</a>
+                <a href="repayments.html">🔄 Repayments</a>
+                <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger-link">⚡ Swagger API</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Internal SHG Loans Disbursal</h2>
+                <p class="page-subtitle">Disburse credit to members from pooled savings, adhering to available pool &amp; active loan rules</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="reloadLoansPage()">🔄 Refresh</button>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="alert-box" class="alert-container"></div>
+
+        <!-- Live Group Available Pool Banner -->
+        <div class="pool-banner" id="pool-banner-container">
+            <div>
+                <div class="pool-banner-title">Current Group Available Pool</div>
+                <div style="font-size: 0.8rem; color: #065f46;">Total Contributions minus Total Outstanding Loans</div>
+            </div>
+            <div class="pool-banner-amount" id="display-available-pool">₹0.00</div>
+        </div>
+
+        <!-- Disburse Loan Form Card -->
+        <div class="card">
+            <h3 class="card-title">📑 Disburse New Internal Loan</h3>
+            <form id="loan-form" onsubmit="handleLoanSubmit(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="loan-group">Self-Help Group *</label>
+                        <select id="loan-group" class="form-control" required onchange="onGroupChange(this.value)">
+                            <option value="">Loading groups...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loan-member">Recipient Member *</label>
+                        <select id="loan-member" class="form-control" required onchange="checkMemberLoanStatus(this.value)">
+                            <option value="">-- Select Member --</option>
+                        </select>
+                        <div id="member-warning" class="form-hint" style="color: var(--danger); font-weight: 600; display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loan-amount">Requested Loan Amount (₹) *</label>
+                        <input type="number" id="loan-amount" class="form-control" placeholder="e.g. 5000" min="1" step="any" required oninput="validateLoanAmountAgainstPool(this.value)">
+                        <div id="pool-warning" class="form-hint" style="color: var(--danger); font-weight: 600; display: none;">
+                            ⚠️ Loan amount exceeds available group pool.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loan-date">Disbursal Date *</label>
+                        <input type="date" id="loan-date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="loan-description">Loan Purpose / Description</label>
+                        <input type="text" id="loan-description" class="form-control" placeholder="e.g. Sewing machine purchase, medical emergency, children education">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="btn-disburse" class="btn btn-primary">📑 Disburse Loan</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loans Table Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>📋 Internal Loans Directory <span class="badge badge-group" id="loans-count-badge" style="margin-left: 0.5rem;">0 Loans</span></span>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <select id="loan-status-filter" class="form-control" style="width: auto; font-size: 0.85rem;" onchange="applyLoanFilters()">
+                        <option value="ALL">All Status</option>
+                        <option value="ACTIVE">ACTIVE Only</option>
+                        <option value="CLOSED">CLOSED Only</option>
+                    </select>
+                    <input type="text" id="loan-search" class="form-control" style="max-width: 240px; font-size: 0.85rem;" placeholder="🔍 Search borrower..." oninput="applyLoanFilters()">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Amount (₹)</th>
+                            <th>Outstanding (₹)</th>
+                            <th>Disbursal Date</th>
+                            <th>Status</th>
+                            <th>Description</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loans-table-body">
+                        <tr>
+                            <td colspan="8" class="table-empty">Loading loans records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <p><strong>MicroSave – Self-Help Group Savings Tracker</strong> | Semester Examination Project</p>
+    </footer>
+
+    <script src="js/loans.js"></script>
+</body>
+</html>

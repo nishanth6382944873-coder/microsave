@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroSave – Members Management</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-wrapper">
+                <div class="brand-logo-icon">MS</div>
+                <div class="brand-info">
+                    <h1>MicroSave</h1>
+                    <span>Self-Help Group Savings Tracker</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="members.html" class="active">👥 Members</a>
+                <a href="contributions.html">💰 Savings / Contributions</a>
+                <a href="loans.html">📑 Internal Loans</a>
+                <a href="repayments.html">🔄 Repayments</a>
+                <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger-link">⚡ Swagger API</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">SHG Members Management</h2>
+                <p class="page-subtitle">Register new women members, view personal savings balance, and manage records</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="loadMembers()">🔄 Refresh List</button>
+        </div>
+
+        <!-- Alert Notification Banner -->
+        <div id="alert-box" class="alert-container"></div>
+
+        <!-- Add / Edit Member Form Card -->
+        <div class="card">
+            <h3 class="card-title" id="form-heading">➕ Register New Member</h3>
+            <form id="member-form" onsubmit="handleMemberSubmit(event)">
+                <input type="hidden" id="member-id">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="member-name">Full Name *</label>
+                        <input type="text" id="member-name" class="form-control" placeholder="e.g. Priya Sharma" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="member-phone">Phone Number *</label>
+                        <input type="tel" id="member-phone" class="form-control" placeholder="e.g. 9876543210" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="member-email">Email Address</label>
+                        <input type="email" id="member-email" class="form-control" placeholder="e.g. priya@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="member-group">Self-Help Group *</label>
+                        <select id="member-group" class="form-control" required>
+                            <option value="">Loading groups...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="member-address">Residential Address</label>
+                        <input type="text" id="member-address" class="form-control" placeholder="e.g. 12 Gandhi Nagar, Sector 4">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="btn-cancel" class="btn btn-secondary" onclick="resetMemberForm()" style="display: none;">Cancel Edit</button>
+                    <button type="submit" id="btn-submit" class="btn btn-primary">➕ Add Member</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Members Table Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>📋 Registered SHG Members <span class="badge badge-group" id="members-count-badge" style="margin-left: 0.5rem;">0 Members</span></span>
+                <input type="text" id="member-search" class="form-control" style="max-width: 320px; font-size: 0.85rem;" placeholder="🔍 Search by name or phone..." oninput="filterMembersTable(this.value)">
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Address</th>
+                            <th>Group</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="members-table-body">
+                        <tr>
+                            <td colspan="7" class="table-empty">Loading members data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Member Financial Summary Modal -->
+    <div id="summary-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Member Financial Summary</h3>
+                <button type="button" class="alert-close" onclick="closeSummaryModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="summary-modal-body">
+                <div style="text-align: center; padding: 1.5rem;">Loading financial summary...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSummaryModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <p><strong>MicroSave – Self-Help Group Savings Tracker</strong> | Semester Examination Project</p>
+    </footer>
+
+    <script src="js/members.js"></script>
+</body>
+</html>

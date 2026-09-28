@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroSave – Savings &amp; Contributions</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-wrapper">
+                <div class="brand-logo-icon">MS</div>
+                <div class="brand-info">
+                    <h1>MicroSave</h1>
+                    <span>Self-Help Group Savings Tracker</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="members.html">👥 Members</a>
+                <a href="contributions.html" class="active">💰 Savings / Contributions</a>
+                <a href="loans.html">📑 Internal Loans</a>
+                <a href="repayments.html">🔄 Repayments</a>
+                <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger-link">⚡ Swagger API</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Member Weekly Savings Contributions</h2>
+                <p class="page-subtitle">Record individual member deposits that build up the group's pooled lending capital</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="loadContributions()">🔄 Refresh History</button>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="alert-box" class="alert-container"></div>
+
+        <!-- Record Contribution Form Card -->
+        <div class="card">
+            <h3 class="card-title">💰 Record New Savings Contribution</h3>
+            <form id="contribution-form" onsubmit="handleContributionSubmit(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="contrib-group">Self-Help Group *</label>
+                        <select id="contrib-group" class="form-control" required onchange="filterMembersByGroup(this.value)">
+                            <option value="">Loading groups...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contrib-member">Select Member *</label>
+                        <select id="contrib-member" class="form-control" required>
+                            <option value="">-- Select Member --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contrib-amount">Deposit Amount (₹) *</label>
+                        <input type="number" id="contrib-amount" class="form-control" placeholder="e.g. 500" min="1" step="any" required>
+                        <div style="display: flex; gap: 0.4rem; margin-top: 0.4rem;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('contrib-amount').value = 500">+₹500</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('contrib-amount').value = 1000">+₹1,000</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('contrib-amount').value = 2000">+₹2,000</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('contrib-amount').value = 5000">+₹5,000</button>
+                        </div>
+                        <div class="form-hint">Rule: Amount must be greater than zero.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contrib-date">Contribution Date *</label>
+                        <input type="date" id="contrib-date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="contrib-description">Description / Notes</label>
+                        <input type="text" id="contrib-description" class="form-control" placeholder="e.g. Weekly savings deposit, Week 12">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">💰 Record Contribution</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Contributions History Table Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>📜 Savings Contribution History <span class="badge badge-group" id="contrib-total-badge" style="margin-left: 0.5rem;">Total: ₹0</span></span>
+                <input type="text" id="contrib-search" class="form-control" style="max-width: 320px; font-size: 0.85rem;" placeholder="🔍 Filter by member or notes..." oninput="filterContributionsTable(this.value)">
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Group</th>
+                            <th>Amount (₹)</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contributions-table-body">
+                        <tr>
+                            <td colspan="6" class="table-empty">Loading contribution history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <p><strong>MicroSave – Self-Help Group Savings Tracker</strong> | Semester Examination Project</p>
+    </footer>
+
+    <script src="js/contributions.js"></script>
+</body>
+</html>
