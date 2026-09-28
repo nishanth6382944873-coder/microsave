@@ -262,8 +262,11 @@ async function showMemberSummary(memberId) {
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
             throw new Error(errData.message || `HTTP ${response.status}`);
-        }
         const data = await response.json();
+        if (data.message && !data.memberName) {
+            modalBody.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-secondary); font-size: 1.05rem;">ℹ️ ${data.message}</div>`;
+            return;
+        }
 
         modalBody.innerHTML = `
             <div style="text-align: center; margin-bottom: 1.25rem;">

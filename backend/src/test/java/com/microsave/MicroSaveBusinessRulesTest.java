@@ -238,4 +238,22 @@ public class MicroSaveBusinessRulesTest {
         assertEquals(4000.0, dashboard.getTotalOutstandingLoans()); // 6000 - 2000
         assertEquals(16000.0, dashboard.getAvailablePool()); // 20000 - 4000
     }
+
+    @Test
+    @DisplayName("Test 12: Delete member cascades and removes contributions, loans, and repayments cleanly")
+    void testDeleteMemberWithCascade() {
+        contributionService.recordContribution(new ContributionRequest(memberId1, testGroupId, 5000.0, LocalDate.now(), "Deposit"));
+        LoanResponse loan = loanService.disburseLoan(new LoanRequest(memberId1, testGroupId, 3000.0, LocalDate.now(), "Loan"));
+        repaymentService.recordRepayment(new RepaymentRequest(loan.getId(), 1000.0, LocalDate.now(), "Part Pay"));
+
+        // Delete member1
+        assertDoesNotThrow(() -> memberService.deleteMember(memberId1));
+
+        // Member should no longer exist
+        assertThrows(com.microsave.exception.ResourceNotFoundException.class, () -> memberService.getMemberResponseById(memberId1));
+
+        // Contributions and loans for member1 should be gone
+        assertEquals(0, contributionService.getContributionsByMemberId(memberId1).size());
+        assertEquals(0, loanService.getLoansByMemberId(memberId1).size());
+    }
 }

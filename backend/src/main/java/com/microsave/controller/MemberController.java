@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/members")
@@ -42,26 +43,50 @@ public class MemberController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get member by ID", description = "Retrieves a member's details by their ID")
-    public ResponseEntity<MemberResponse> getMemberById(@PathVariable Long id) {
+    public ResponseEntity<?> getMemberById(@PathVariable Long id) {
+        if (!memberService.memberExists(id)) {
+            String msg = memberService.isMemberDeleted(id)
+                    ? "Member with ID " + id + " has already been deleted."
+                    : "Member with ID " + id + " has already been deleted or does not exist.";
+            return ResponseEntity.ok(Map.of("message", msg));
+        }
         return ResponseEntity.ok(memberService.getMemberResponseById(id));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update member", description = "Updates an existing member's information")
-    public ResponseEntity<MemberResponse> updateMember(@PathVariable Long id, @Valid @RequestBody MemberRequest request) {
+    public ResponseEntity<?> updateMember(@PathVariable Long id, @Valid @RequestBody MemberRequest request) {
+        if (!memberService.memberExists(id)) {
+            String msg = memberService.isMemberDeleted(id)
+                    ? "Member with ID " + id + " has already been deleted."
+                    : "Member with ID " + id + " has already been deleted or does not exist.";
+            return ResponseEntity.ok(Map.of("message", msg));
+        }
         return ResponseEntity.ok(memberService.updateMember(id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete member", description = "Deletes a member by their ID")
-    public ResponseEntity<Void> deleteMember(@PathVariable Long id) {
+    public ResponseEntity<?> deleteMember(@PathVariable Long id) {
+        if (!memberService.memberExists(id)) {
+            String msg = memberService.isMemberDeleted(id)
+                    ? "Member with ID " + id + " has already been deleted."
+                    : "Member with ID " + id + " has already been deleted or does not exist.";
+            return ResponseEntity.ok(Map.of("message", msg));
+        }
         memberService.deleteMember(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Member with ID " + id + " deleted successfully."));
     }
 
     @GetMapping("/{memberId}/summary")
     @Operation(summary = "Get member savings & loan summary", description = "Returns total savings, active loan amount, and outstanding loan for a member")
-    public ResponseEntity<MemberSummaryResponse> getMemberSummary(@PathVariable Long memberId) {
+    public ResponseEntity<?> getMemberSummary(@PathVariable Long memberId) {
+        if (!memberService.memberExists(memberId)) {
+            String msg = memberService.isMemberDeleted(memberId)
+                    ? "Member with ID " + memberId + " has already been deleted."
+                    : "Member with ID " + memberId + " has already been deleted or does not exist.";
+            return ResponseEntity.ok(Map.of("message", msg));
+        }
         return ResponseEntity.ok(memberService.getMemberSummary(memberId));
     }
 }

@@ -3,17 +3,24 @@ package com.microsave.service;
 import com.microsave.dto.MemberRequest;
 import com.microsave.dto.MemberResponse;
 import com.microsave.dto.MemberSummaryResponse;
+import com.microsave.entity.Contribution;
 import com.microsave.entity.Group;
+import com.microsave.entity.Loan;
 import com.microsave.entity.Member;
+import com.microsave.entity.Repayment;
 import com.microsave.exception.ResourceNotFoundException;
 import com.microsave.repository.ContributionRepository;
 import com.microsave.repository.GroupRepository;
 import com.microsave.repository.LoanRepository;
 import com.microsave.repository.MemberRepository;
+import com.microsave.repository.RepaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,15 +31,21 @@ public class MemberService {
     private final GroupRepository groupRepository;
     private final ContributionRepository contributionRepository;
     private final LoanRepository loanRepository;
+    private final RepaymentRepository repaymentRepository;
+
+    // Track recently deleted member IDs so queries for them report they are already deleted
+    private final Set<Long> deletedMemberIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public MemberService(MemberRepository memberRepository,
                          GroupRepository groupRepository,
                          ContributionRepository contributionRepository,
-                         LoanRepository loanRepository) {
+                         LoanRepository loanRepository,
+                         RepaymentRepository repaymentRepository) {
         this.memberRepository = memberRepository;
         this.groupRepository = groupRepository;
         this.contributionRepository = contributionRepository;
         this.loanRepository = loanRepository;
+        this.repaymentRepository = repaymentRepository;
     }
 
     public MemberResponse createMember(MemberRequest request) {
@@ -47,6 +60,7 @@ public class MemberService {
         member.setGroup(group);
 
         Member savedMember = memberRepository.save(member);
+        deletedMemberIds.remove(savedMember.getId());
         return mapToResponse(savedMember);
     }
 
@@ -65,6 +79,15 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
+    public boolean memberExists(Long id) {
+        return memberRepository.existsById(id);
+    }
+
+    public boolean isMemberDeleted(Long id) {
+        return deletedMemberIds.contains(id);
+    }
+
+    @Transactional(readOnly = true)
     public MemberResponse getMemberResponseById(Long id) {
         Member member = getMemberEntityById(id);
         return mapToResponse(member);
@@ -73,7 +96,12 @@ public class MemberService {
     @Transactional(readOnly = true)
     public Member getMemberEntityById(Long id) {
         return memberRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Member with ID " + id + " not found."));
+                .orElseThrow(() -> {
+                    if (deletedMemberIds.contains(id)) {
+                        return new ResourceNotFoundException("Member with ID " + id + " has already been deleted.");
+                    }
+                    return new ResourceNotFoundException("Member with ID " + id + " has already been deleted or does not exist.");
+                });
     }
 
     public MemberResponse updateMember(Long id, MemberRequest request) {
@@ -96,7 +124,30 @@ public class MemberService {
 
     public void deleteMember(Long id) {
         Member member = getMemberEntityById(id);
+
+        // 1. Delete all repayments linked to this member's loans
+        List<Loan> memberLoans = loanRepository.findByMemberId(id);
+        for (Loan loan : memberLoans) {
+            List<Repayment> repayments = repaymentRepository.findByLoanId(loan.getId());
+            if (!repayments.isEmpty()) {
+                repaymentRepository.deleteAll(repayments);
+            }
+        }
+
+        // 2. Delete all loans taken by this member
+        if (!memberLoans.isEmpty()) {
+            loanRepository.deleteAll(memberLoans);
+        }
+
+        // 3. Delete all contributions made by this member
+        List<Contribution> memberContributions = contributionRepository.findByMemberId(id);
+        if (!memberContributions.isEmpty()) {
+            contributionRepository.deleteAll(memberContributions);
+        }
+
+        // 4. Delete the member
         memberRepository.delete(member);
+        deletedMemberIds.add(id);
     }
 
     /**

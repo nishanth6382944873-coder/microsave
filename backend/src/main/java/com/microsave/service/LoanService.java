@@ -11,6 +11,7 @@ import com.microsave.repository.ContributionRepository;
 import com.microsave.repository.GroupRepository;
 import com.microsave.repository.LoanRepository;
 import com.microsave.repository.MemberRepository;
+import com.microsave.repository.RepaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,15 +27,18 @@ public class LoanService {
     private final MemberRepository memberRepository;
     private final GroupRepository groupRepository;
     private final ContributionRepository contributionRepository;
+    private final RepaymentRepository repaymentRepository;
 
     public LoanService(LoanRepository loanRepository,
                        MemberRepository memberRepository,
                        GroupRepository groupRepository,
-                       ContributionRepository contributionRepository) {
+                       ContributionRepository contributionRepository,
+                       RepaymentRepository repaymentRepository) {
         this.loanRepository = loanRepository;
         this.memberRepository = memberRepository;
         this.groupRepository = groupRepository;
         this.contributionRepository = contributionRepository;
+        this.repaymentRepository = repaymentRepository;
     }
 
     /**
@@ -164,6 +168,10 @@ public class LoanService {
 
     public void deleteLoan(Long id) {
         Loan loan = getLoanEntityById(id);
+        List<com.microsave.entity.Repayment> repayments = repaymentRepository.findByLoanId(id);
+        if (!repayments.isEmpty()) {
+            repaymentRepository.deleteAll(repayments);
+        }
         loanRepository.delete(loan);
     }
 
